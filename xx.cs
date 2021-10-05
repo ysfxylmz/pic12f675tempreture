@@ -973,8 +973,8 @@ namespace NProject
             gain.Clear();
             
             double commission = 14.0;
-            
-            double dolar_curr = update_currency();
+
+            double dolar_curr = 8;//Convert.ToDouble(dolar_text.Text.ToString());//update_currency();
             Open_excel3("C:\\OUTPUTS\\MENU3\\menu3.xlsx");
             
             oSheet3.Cells[1, 1] ="BARKOD";
@@ -997,27 +997,27 @@ namespace NProject
                 oSheet3.Cells[j - 2, 2] = (string)(oSheet.Cells[j, 6] as Excel.Range).Value;
                 if(find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value)!=0)
                 {
-                    sale_price_value.Add((double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value);
-                    oSheet3.Cells[j - 2, 3] = (double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value;
+                    cost_usd_value.Add((double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value);
+                    oSheet3.Cells[j - 2, 6] =(double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value ;
                 }
                 else
                 {
-                    sale_price_value.Add(0);
-                    oSheet3.Cells[j - 2, 3] = 0;
+                    cost_usd_value.Add(0);
+                    oSheet3.Cells[j - 2, 6] = 0;
                 }
 
                 oSheet3.Cells[j - 2, 4] = commission;
 
-                cost_try_value.Add((double)(oSheet.Cells[j, 9] as Excel.Range).Value);
-                oSheet3.Cells[j - 2, 5] = (double)(oSheet.Cells[j, 9] as Excel.Range).Value;
+                cost_try_value.Add(cost_usd_value[j-4]*dolar_curr);
+                oSheet3.Cells[j - 2, 5] = cost_usd_value[j - 4] * dolar_curr;
 
 
-                cost_usd_value.Add (((double)(oSheet.Cells[j, 9] as Excel.Range).Value)/dolar_curr);
-                oSheet3.Cells[j - 2, 6] = ((double)(oSheet.Cells[j, 9] as Excel.Range).Value)/ dolar_curr;
+                sale_price_value.Add((double)(oSheet.Cells[j, 9] as Excel.Range).Value);
+                oSheet3.Cells[j - 2, 3] = (double)(oSheet.Cells[j, 9] as Excel.Range).Value;
 
-                //(kar=satış fiyatı - alış fiyatı - (satış fiyatı*komisyon/100))*100/alış fiyatı
-                gain.Add((sale_price_value[j-4]-(sale_price_value[j-4]*commission/100.0)- cost_usd_value[j-4])*100.0/(cost_usd_value[j-4]));
-                oSheet3.Cells[j - 2, 7] = (sale_price_value[j-4]-(sale_price_value[j-4]*commission/100.0)- cost_usd_value[j-4])*100.0/(cost_usd_value[j-4]);
+            //(kar=satış fiyatı - alış fiyatı - (satış fiyatı*komisyon/100))*100/alış fiyatı
+            gain.Add((sale_price_value[j-4]-(sale_price_value[j-4]*commission/100.0)- cost_try_value[j-4])*100.0/(cost_try_value[j-4]));
+                oSheet3.Cells[j - 2, 7] = (sale_price_value[j-4]-(sale_price_value[j-4]*commission/100.0)- cost_try_value[j-4])*100.0/(cost_try_value[j-4]);
 
                 gain_req.Add((min_gain < gain[j - 4]) ? 1:0);
 
