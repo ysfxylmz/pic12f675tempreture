@@ -17,7 +17,7 @@ using Microsoft.VisualBasic;
 using Excel = Microsoft.Office.Interop.Excel;
 using ExcelDataReader;
 using System.Net;
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
 
 namespace NProject
 {
@@ -41,6 +41,7 @@ namespace NProject
         int w = 1;
         int k = 4;
         int j = 0;
+        int j2 = 50;
         int l = 1;
 
         readonly Int32 silver = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Silver);
@@ -58,8 +59,8 @@ namespace NProject
         int endRow2, endColumn2;
         Excel.Application oXL2;
         Excel._Workbook oWB2;
-        Excel._Worksheet oSheet2;    
-        
+        Excel._Worksheet oSheet2;
+
         Excel.Application oXL3;
         Excel._Workbook oWB3;
         Excel._Worksheet oSheet3;
@@ -128,7 +129,6 @@ namespace NProject
         {
             if (filename != null)
             {
-
                 oXL = new Excel.Application();
                 oWB = oXL.Workbooks.Open(filename);
                 oSheet = (Excel._Worksheet)oWB.ActiveSheet;
@@ -137,6 +137,7 @@ namespace NProject
                 endColumn = oSheet.UsedRange.Rows.Count;
                 this.Topmost = true;
                 this.Topmost = false;
+                Exclose_btn.IsEnabled = true;
             }
         }
 
@@ -152,6 +153,20 @@ namespace NProject
                 endColumn2 = oSheet2.UsedRange.Rows.Count;
                 this.Topmost = true;
                 this.Topmost = false;
+                Ex2close_btn.IsEnabled = true;
+            }
+        }
+
+        private void Open_excel3(string filename)
+        {
+            if (filename != null)
+            {
+                oXL3 = new Excel.Application();
+                oWB3 = oXL3.Workbooks.Open(filename);
+                oSheet3 = (Excel._Worksheet)oWB3.ActiveSheet;
+                oXL3.Visible = true;
+                this.Topmost = true;
+                this.Topmost = false;
             }
         }
 
@@ -162,7 +177,7 @@ namespace NProject
 
         public void Veri_tipi()
         {
-            
+
             po = (string)(oSheet.Cells[4, 1] as Excel.Range).Value; //başlangıç satırı 5 
             veri.Add(po);
 
@@ -219,6 +234,16 @@ namespace NProject
 
                 j = j + Convert.ToInt32(Barkodcarpan_text.Text);
                 Sayac_text.Text = j.ToString();
+                if (j >= j2)
+                {
+                    MessageBoxResult result1 = MessageBox.Show("İLERLEMEYİ KAYDETMEK İSTERMİSİNİZ?", "UYARI!", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                    if (result1 == MessageBoxResult.Yes)
+                    {
+                        oWB.Save();
+                    }
+                    j2 = j2 + 50;
+                }
                 return 1;
             }
         }
@@ -357,7 +382,7 @@ namespace NProject
 
         private void Gezgin_btn_Click(object sender, RoutedEventArgs e)
         {
-            if (Kaydet_btn.IsEnabled == false && Barkod_text.IsEnabled == false)
+            if (Exclose_btn.IsEnabled == false)
             {
                 OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
                 openFileDialog.Multiselect = false;
@@ -375,28 +400,48 @@ namespace NProject
                 }
             }
 
-            else if (Kaydet_btn.IsEnabled == false && Barkod_text.IsEnabled == true)
+            else if (Exclose_btn.IsEnabled == true && Kaydet_btn.IsEnabled == false)
             {
-               
-                oWB.Close(0);
-                Button_dis();
-                oXL.Quit();
-                OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
-                openFileDialog.Multiselect = false;
-                Nullable<bool> dialogOK = openFileDialog.ShowDialog();
-                if (dialogOK == true)
+                try
                 {
-                    File_text.Text = openFileDialog.FileName;
-                    if (File_text.Text.Length > 0)
+                    oWB.Close(0);
+                    Button_dis();
+                    oXL.Quit();
+                    Exclose_btn.IsEnabled = false;
+                    OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                    openFileDialog.Multiselect = false;
+                    Nullable<bool> dialogOK = openFileDialog.ShowDialog();
+                    if (dialogOK == true)
                     {
-                        Open_excel(File_text.Text);
-                        Button_en();
-                        Update_stock_color();
+                        File_text.Text = openFileDialog.FileName;
+                        if (File_text.Text.Length > 0)
+                        {
+                            Open_excel(File_text.Text);
+                            Button_en();
+                            Update_stock_color();
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    Exclose_btn.IsEnabled = false;
+                    OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                    openFileDialog.Multiselect = false;
+                    Nullable<bool> dialogOK = openFileDialog.ShowDialog();
+                    if (dialogOK == true)
+                    {
+                        File_text.Text = openFileDialog.FileName;
+                        if (File_text.Text.Length > 0)
+                        {
+                            Open_excel(File_text.Text);
+                            Button_en();
+                            Update_stock_color();
+                        }
                     }
                 }
             }
 
-            else if (Kaydet_btn.IsEnabled == true && Barkod_text.IsEnabled == true)
+            else if (Exclose_btn.IsEnabled == true && Kaydet_btn.IsEnabled == true)
             {
                 MessageBoxResult result1 = MessageBox.Show("Kaydedilsin Mi?", "Değişiklikler Kaybedilebilir!", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
@@ -405,6 +450,7 @@ namespace NProject
                     Save_color();
                     Button_dis();
                     oXL.Quit();
+                    Exclose_btn.IsEnabled = false;
                 }
 
                 else if (result1 == MessageBoxResult.No)
@@ -412,6 +458,7 @@ namespace NProject
                     oWB.Close(0);
                     Button_dis();
                     oXL.Quit();
+                    Exclose_btn.IsEnabled = false;
                 }
 
                 OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
@@ -496,10 +543,11 @@ namespace NProject
                         oWB2.SaveAs("C:\\OUTPUTS\\AMAZON\\" + veri[i] + "_amazon.xlsx");
                         oWB2.Close(0);
                         oXL2.Quit();
+                        Ex2close_btn.IsEnabled = false;
                     }
                     MessageBox.Show("Amazon_Fatura Oluşturma İşlemi Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
                     veri.Clear();
-                }             
+                }
             }
 
             else
@@ -546,10 +594,7 @@ namespace NProject
                                         maliyet = maliyet.Replace(",", ".");
                                     }
 
-
-
                                     kdv = double.Parse(maliyet) + (double.Parse(maliyet) * (double.Parse(vergi) / 100));
-
 
                                     oSheet2.Cells[m, 25] = oSheet.Cells[j, 4];
                                     oSheet2.Cells[m, 26] = oSheet.Cells[j, 6];
@@ -568,10 +613,11 @@ namespace NProject
                         oWB2.SaveAs("C:\\OUTPUTS\\E_FATURA\\" + veri[i] + "_fatura.xlsx");
                         oWB2.Close(0);
                         oXL2.Quit();
+                        Ex2close_btn.IsEnabled = false;
                     }
                     MessageBox.Show("E_Fatura Oluşturma İşlemi Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
                     veri.Clear();
-                }               
+                }
             }
 
             else
@@ -618,9 +664,9 @@ namespace NProject
                         oWB.Close(0);
                         Button_dis();
                         oXL.Quit();
+                        Exclose_btn.IsEnabled = false;
                         Application.Current.Shutdown();
                     }
-                   
                 }
             }
 
@@ -636,23 +682,34 @@ namespace NProject
                         Save_color();
                         Button_dis();
                         oXL.Quit();
+                        Exclose_btn.IsEnabled = false;
                         Application.Current.Shutdown();
                     }
 
                     else if (result2 == MessageBoxResult.No)
                     {
-                        oWB.Close(0);
-                        Button_dis();
-                        oXL.Quit();
-                        Application.Current.Shutdown();
+                        try
+                        {
+                            oWB.Close(0);
+                            Button_dis();
+                            oXL.Quit();
+                            Exclose_btn.IsEnabled = false;
+                            Application.Current.Shutdown();
+                        }
+                        catch (Exception)
+                        {
+                            Button_dis();
+                            Exclose_btn.IsEnabled = false;
+                            Application.Current.Shutdown();
+                        }
                     }
-                }               
+                }
             }
         }
 
         private void Menu_1_Click(object sender, RoutedEventArgs e)
         {
-            if (Kaydet_btn.IsEnabled==false && Kaydet2_btn.IsEnabled == false && Kaydet3_btn.IsEnabled == false)
+            if (Exclose_btn.IsEnabled == false && Ex2close_btn.IsEnabled == false)
             {
                 Menu_1.Foreground = new SolidColorBrush(Color.FromRgb(241, 197, 23));
                 Menu_2.Foreground = new SolidColorBrush(Colors.White);
@@ -664,12 +721,15 @@ namespace NProject
                 Panel.SetZIndex(Menu2_pnl, 0);
                 Panel.SetZIndex(Menu3_pnl, 0);
             }
-            else MessageBox.Show("Lütfen İlk Önce Kaydetme İşleminizi Yapınız.", "UYARI!", MessageBoxButton.OK, MessageBoxImage.Warning);
+            else
+            {
+                MessageBox.Show("Lütfen İlk Önce Excel Kapatma İşleminizi Yapınız.", "UYARI!", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }           
         }
 
         private void Menu_2_Click(object sender, RoutedEventArgs e)
         {
-            if (Kaydet_btn.IsEnabled == false && Kaydet2_btn.IsEnabled == false && Kaydet3_btn.IsEnabled == false)
+            if (Exclose_btn.IsEnabled == false && Ex2close_btn.IsEnabled == false)
             {
                 Menu_1.Foreground = new SolidColorBrush(Colors.White);
                 Menu_2.Foreground = new SolidColorBrush(Color.FromRgb(241, 197, 23));
@@ -681,12 +741,12 @@ namespace NProject
                 Panel.SetZIndex(Menu2_pnl, 1);
                 Panel.SetZIndex(Menu3_pnl, 0);
             }
-            else MessageBox.Show("Lütfen İlk Önce Kaydetme İşleminizi Yapınız.", "UYARI!", MessageBoxButton.OK, MessageBoxImage.Warning);
+            else MessageBox.Show("Lütfen İlk Önce Excel Kapatma İşleminizi Yapınız.", "UYARI!", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         private void Menu_3_Click(object sender, RoutedEventArgs e)
         {
-            if (Kaydet_btn.IsEnabled == false && Kaydet2_btn.IsEnabled == false && Kaydet3_btn.IsEnabled == false)
+            if (Exclose_btn.IsEnabled == false && Ex2close_btn.IsEnabled == false)
             {
                 Menu_1.Foreground = new SolidColorBrush(Colors.White);
                 Menu_2.Foreground = new SolidColorBrush(Colors.White);
@@ -698,7 +758,7 @@ namespace NProject
                 Panel.SetZIndex(Menu2_pnl, 0);
                 Panel.SetZIndex(Menu3_pnl, 1);
             }
-            else MessageBox.Show("Lütfen İlk Önce Kaydetme İşleminizi Yapınız.", "UYARI!", MessageBoxButton.OK, MessageBoxImage.Warning);
+            else MessageBox.Show("Lütfen İlk Önce Excel Kapatma İşleminizi Yapınız.", "UYARI!", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         private void Login_btn_Click(object sender, RoutedEventArgs e)
@@ -812,6 +872,7 @@ namespace NProject
             oWB2.SaveAs("C:\\OUTPUTS\\DUZENLENMIS\\NewExcel" + w + ".xlsx");
             oWB2.Close(0);
             oXL2.Quit();
+            Ex2close_btn.IsEnabled = false;
             w++;
             Kaydet2_btn.IsEnabled = false;
             MessageBox.Show("Kaydetme İşlemi Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -829,7 +890,7 @@ namespace NProject
             }
             else
             {
-                MessageBox.Show("Ekleme Sırasında Hata Meydana Geldi Lütfen Tekrar Deneyin!", "HATA!", MessageBoxButton.OK, MessageBoxImage.Error);                
+                MessageBox.Show("Ekleme Sırasında Hata Meydana Geldi Lütfen Tekrar Deneyin!", "HATA!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         /*YUSUF YILMAZ */
@@ -843,47 +904,51 @@ namespace NProject
         }
 
 
-        public  double update_currency()
+        public double update_currency()
         {
-            
-                String URLString = "https://free.currconv.com/api/v7/convert?q=USD_TRY&compact=ultra&apiKey=f8f9494dc175534f6941";
-                using (var webClient = new System.Net.WebClient())
-                {
-                    var json = webClient.DownloadString(URLString);
-                    json=json.Replace("{", string.Empty);
-                    json = json.Replace("}", string.Empty);
-                    json =json.Replace("\"", string.Empty);
-                        
-                        
-                    string unit=json.Split(':')[0];
-                    string curr = json.Split(':')[1];
-                    dolar_text.Text = curr+" TL";
+            String URLString = "https://free.currconv.com/api/v7/convert?q=USD_TRY&compact=ultra&apiKey=f8f9494dc175534f6941";
+            using (var webClient = new System.Net.WebClient())
+            {
+                var json = webClient.DownloadString(URLString);
+                json = json.Replace("{", string.Empty);
+                json = json.Replace("}", string.Empty);
+                json = json.Replace("\"", string.Empty);
+
+
+                string unit = json.Split(':')[0];
+                string curr = json.Split(':')[1];
+                dolar_text.Text = curr + " TL";
                 return Convert.ToDouble(curr);
-                }
-            
-       
+            }
         }
 
         private void Gezgin31_btn_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
-            openFileDialog.Multiselect = false;
-            Nullable<bool> dialogOK = openFileDialog.ShowDialog();
-            if (dialogOK == true)
+            if (Exclose_btn.IsEnabled == false)
             {
-                File31_text.Text = openFileDialog.FileName;
-
-                if (File31_text.Text.Length > 0)
+                OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                openFileDialog.Multiselect = false;
+                Nullable<bool> dialogOK = openFileDialog.ShowDialog();
+                if (dialogOK == true)
                 {
-                    Open_excel(File31_text.Text);
-                    Gezgin32_btn.IsEnabled = true;
+                    File31_text.Text = openFileDialog.FileName;
+
+                    if (File31_text.Text.Length > 0)
+                    {
+                        Open_excel(File31_text.Text);
+                        Gezgin31_btn.IsEnabled = false;
+                        Gezgin32_btn.IsEnabled = true;
+                    }
                 }
+            }
+            else
+            {
+                MessageBox.Show("İlk Önce Açık Olan Exceli Kapatınız...", "UYARI", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
         private void Gezgin32_btn_Click(object sender, RoutedEventArgs e)
         {
-            
             OpenFileDialog openFileDialog2 = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
             openFileDialog2.Multiselect = false;
             Nullable<bool> dialogOK = openFileDialog2.ShowDialog();
@@ -894,33 +959,13 @@ namespace NProject
                 if (File32_text.Text.Length > 0)
                 {
                     Open_excel2(File32_text.Text);
-                    Aktarma_btn.IsEnabled = true;
+                    Gezgin32_btn.IsEnabled = false;
+                    KurGuncelle_btn.IsEnabled = true;
+                    dolar_text.IsEnabled = true;
+               
                 }
             }
         }
-
-
-
-
-
-        private void Open_excel3(string filename)
-        {
-            if (filename != null)
-            {
-                oXL3 = new Excel.Application();
-                oWB3 = oXL3.Workbooks.Open(filename);
-                oSheet3 = (Excel._Worksheet)oWB3.ActiveSheet;
-                oXL3.Visible = true;
-                this.Topmost = true;
-                this.Topmost = false;
-            }
-        }
-
-
-
-
-
-
 
         public int find_row(string barcode)
         {
@@ -933,7 +978,33 @@ namespace NProject
             }
             else
             {
-                return (int)(fnd.Row);          
+                return (int)(fnd.Row);
+            }
+        }
+
+        List<int> gain_req = new List<int>();
+        List<double> gain = new List<double>();
+        List<string> barcode_value = new List<string>();
+        List<string> title_value = new List<string>();
+        List<double> cost_try_value = new List<double>();
+        List<double> cost_usd_value = new List<double>();
+        List<double> sale_price_value = new List<double>();
+        double min_gain = 20;
+
+
+        void advice_sale_price(double min_gain_)
+        {
+            for (int i = 2; i < oSheet.UsedRange.Rows.Count - 1; ++i)
+            {
+                if (gain_req[i-2]==0)
+                {
+                    oSheet3.Cells[i, 8] = ((min_gain_ - cost_try_value[i - 2]) / 100.0) + cost_try_value[i - 2];
+                }
+                else
+                {
+                    oSheet3.Cells[i, 8] = "-";
+                }
+                
             }
         }
 
@@ -942,28 +1013,9 @@ namespace NProject
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-        List<int> gain_req = new List<int>();
-        List<double> gain = new List<double>();
-        double min_gain = 20;
         private void Aktarma_btn_Click(object sender, RoutedEventArgs e)
         {
-            List<string> barcode_value          = new List<string>();
-            List<string> title_value            = new List<string>();
-            List<double> cost_try_value         = new List<double>();
-            List<double> cost_usd_value         = new List<double>();
-            List<double> sale_price_value       = new List<double>();
+           
             barcode_value.Clear();
             title_value.Clear();
             cost_try_value.Clear();
@@ -971,34 +1023,31 @@ namespace NProject
             sale_price_value.Clear();
             gain_req.Clear();
             gain.Clear();
-            
+
             double commission = 14.0;
 
             double dolar_curr = 8;//Convert.ToDouble(dolar_text.Text.ToString());//update_currency();
             Open_excel3("C:\\OUTPUTS\\MENU3\\menu3.xlsx");
-            
-            oSheet3.Cells[1, 1] ="BARKOD";
-            oSheet3.Cells[1, 2] ="BAŞLIK";
-            oSheet3.Cells[1, 3] ="SATIŞ FİYATI";
-            oSheet3.Cells[1, 4] ="KOMİSYON";
-            oSheet3.Cells[1, 5] ="ALIŞ FİYATI (TRY)";
-            oSheet3.Cells[1, 6] ="ALIŞ FİYATI (USD)";
-            oSheet3.Cells[1, 7] ="NET KAR (%)";
-            oSheet3.Cells[1, 8] ="ÖNERİLEN SATIŞ FİYATI";
+
+            oSheet3.Cells[1, 1] = "BARKOD";
+            oSheet3.Cells[1, 2] = "BAŞLIK";
+            oSheet3.Cells[1, 3] = "SATIŞ FİYATI";
+            oSheet3.Cells[1, 4] = "KOMİSYON";
+            oSheet3.Cells[1, 5] = "ALIŞ FİYATI (TRY)";
+            oSheet3.Cells[1, 6] = "ALIŞ FİYATI (USD)";
+            oSheet3.Cells[1, 7] = "NET KAR (%)";
+            oSheet3.Cells[1, 8] = "ÖNERİLEN SATIŞ FİYATI";
             for (int j = 4; j < oSheet.UsedRange.Rows.Count + 1; j++)
             {
                 barcode_value.Add((string)(oSheet.Cells[j, 2] as Excel.Range).Value);
-                oSheet3.Cells[j-2, 1] = (oSheet.Cells[j, 2] as Excel.Range).Value;
-                
-                
-                
-                
+                oSheet3.Cells[j - 2, 1] = (oSheet.Cells[j, 2] as Excel.Range).Value;
+
                 title_value.Add((string)(oSheet.Cells[j, 6] as Excel.Range).Value);
                 oSheet3.Cells[j - 2, 2] = (string)(oSheet.Cells[j, 6] as Excel.Range).Value;
-                if(find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value)!=0)
+                if (find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value) != 0)
                 {
                     cost_usd_value.Add((double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value);
-                    oSheet3.Cells[j - 2, 6] =(double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value ;
+                    oSheet3.Cells[j - 2, 6] = (double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value;
                 }
                 else
                 {
@@ -1008,125 +1057,143 @@ namespace NProject
 
                 oSheet3.Cells[j - 2, 4] = commission;
 
-                cost_try_value.Add(cost_usd_value[j-4]*dolar_curr);
+                cost_try_value.Add(cost_usd_value[j - 4] * dolar_curr);
                 oSheet3.Cells[j - 2, 5] = cost_usd_value[j - 4] * dolar_curr;
 
 
                 sale_price_value.Add((double)(oSheet.Cells[j, 9] as Excel.Range).Value);
                 oSheet3.Cells[j - 2, 3] = (double)(oSheet.Cells[j, 9] as Excel.Range).Value;
 
-            //(kar=satış fiyatı - alış fiyatı - (satış fiyatı*komisyon/100))*100/alış fiyatı
-            gain.Add((sale_price_value[j-4]-(sale_price_value[j-4]*commission/100.0)- cost_try_value[j-4])*100.0/(cost_try_value[j-4]));
-                oSheet3.Cells[j - 2, 7] = (sale_price_value[j-4]-(sale_price_value[j-4]*commission/100.0)- cost_try_value[j-4])*100.0/(cost_try_value[j-4]);
+                //(kar=satış fiyatı - alış fiyatı - (satış fiyatı*komisyon/100))*100/alış fiyatı
+                gain.Add((sale_price_value[j - 4] - cost_try_value[j - 4]) * 100.0 / (cost_try_value[j - 4]));
+                oSheet3.Cells[j - 2, 7] = Math.Round((sale_price_value[j - 4] -  cost_try_value[j - 4]) * 100.0 / (cost_try_value[j - 4]),2);
 
-                gain_req.Add((min_gain < gain[j - 4]) ? 1:0);
-
-
-        }
-            oSheet3.Columns.AutoFit();
-            oSheet3.Columns.HorizontalAlignment = 4;
-            Boyama_btn.IsEnabled = true;
-            Kaydet3_btn.IsEnabled = true;
-            MinumumKar_btn.IsEnabled = true;
-
-        }
-
-        private void Boyama_btn_Click(object sender, RoutedEventArgs e)
-        {
-            for (int j = 0; j < gain.Count; j++)
-            {
-                gain_req[j]=((min_gain < gain[j]) ? 1 : 0);
+                gain_req.Add((min_gain < gain[j - 4]) ? 1 : 0);
             }
 
-                for (int i=0;i<gain_req.Count;++i)
+            for (int j = 0; j < gain.Count; j++)
             {
-                if (gain_req[i]==1)
+                gain_req[j] = ((min_gain < gain[j]) ? 1 : 0);
+            }
+
+            for (int i = 0; i < gain_req.Count; ++i)
+            {
+                if (gain_req[i] == 1)
                 {
 
-                    (oSheet3.UsedRange.Rows[i+2] as Excel.Range).Interior.Color = green;
+                    (oSheet3.UsedRange.Rows[i + 2] as Excel.Range).Interior.Color = green;
                 }
                 else
                 {
-                    (oSheet3.UsedRange.Rows[i+2] as Excel.Range).Interior.Color = red;
+                    (oSheet3.UsedRange.Rows[i + 2] as Excel.Range).Interior.Color = red;
                 }
             }
 
+            oSheet3.Columns.AutoFit();
+            oSheet3.Columns.HorizontalAlignment = 4;
+            Kaydet3_btn.IsEnabled = true;
+            MinumumKar_btn.IsEnabled = true;
+            advice_sale_price(min_gain);
         }
-        void advice_sale_price(double min_gain_)
-        {
-            for(int i=2;i< oSheet.UsedRange.Rows.Count;++i)
-            {
-                oSheet3.Cells[i, 8] = 12;
-            }
-        }
+
+ 
         private void MinumumKar_btn_Click(object sender, RoutedEventArgs e)
         {
-
-
-             
-                
-                InputBox inputvergi2 = new InputBox();
+            InputBox inputvergi2 = new InputBox();
             inputvergi2.Title = "Minimum Kar Girişi";
-                inputvergi2.ShowDialog();
-                if (inputvergi2.DialogResult == true)
-                {
+            inputvergi2.ShowDialog();
+            if (inputvergi2.DialogResult == true)
+            {
                 min_gain = Convert.ToDouble(inputvergi2.Answer);
-                advice_sale_price(min_gain);    
-            
-            
-            }               
-                       
-
-
-
-
+                
+            }
+            Aktarma_btn.IsEnabled = true;
         }
 
         private void KurGuncelle_btn_Click(object sender, RoutedEventArgs e)
         {
             update_currency();
+            MinumumKar_btn.IsEnabled = true;
         }
 
+        private void Exclose_btn_Click(object sender, RoutedEventArgs e)
+        {
+            oWB.Close(0);
+            oXL.Quit();
+            Exclose_btn.IsEnabled = false;
+        }
 
-
+        private void Ex2close_btn_Click(object sender, RoutedEventArgs e)
+        {
+            oWB2.Close(0);
+            oXL2.Quit();
+            Ex2close_btn.IsEnabled = false;
+        }
 
         /*YUSUF YILMAZ finito*/
         private void Gezgin2_btn_Click(object sender, RoutedEventArgs e)
         {
-            if (Kaydet2_btn.IsEnabled == false && ListEkle_text.IsEnabled == false)
+            if (Ex2close_btn.IsEnabled == false)
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
-                openFileDialog.Multiselect = false;
-                Nullable<bool> dialogOK = openFileDialog.ShowDialog();
-                if (dialogOK == true)
+                if (Ex2close_btn.IsEnabled == false && Kaydet2_btn.IsEnabled == false)
                 {
-                    File2_text.Text = openFileDialog.FileName;
-
-                    if (File2_text.Text.Length > 0)
+                    OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                    openFileDialog.Multiselect = false;
+                    Nullable<bool> dialogOK = openFileDialog.ShowDialog();
+                    if (dialogOK == true)
                     {
-                        Open_excel(File2_text.Text);
-                        Button_en2();
+                        File2_text.Text = openFileDialog.FileName;
+
+                        if (File2_text.Text.Length > 0)
+                        {
+                            Open_excel(File2_text.Text);
+                            Button_en2();
+                        }
+                    }
+                }
+
+                else if (Ex2close_btn.IsEnabled == true && Kaydet2_btn.IsEnabled == false)
+                {
+                    try
+                    {
+                        oWB.Close(0);
+                        Button_dis2();
+                        oXL.Quit();
+                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                        openFileDialog.Multiselect = false;
+                        Nullable<bool> dialogOK = openFileDialog.ShowDialog();
+                        if (dialogOK == true)
+                        {
+                            File2_text.Text = openFileDialog.FileName;
+                            if (File2_text.Text.Length > 0)
+                            {
+                                Open_excel(File2_text.Text);
+                                Button_en2();
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        Button_dis2();
+                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                        openFileDialog.Multiselect = false;
+                        Nullable<bool> dialogOK = openFileDialog.ShowDialog();
+                        if (dialogOK == true)
+                        {
+                            File2_text.Text = openFileDialog.FileName;
+                            if (File2_text.Text.Length > 0)
+                            {
+                                Open_excel(File2_text.Text);
+                                Button_en2();
+                            }
+                        }
                     }
                 }
             }
 
-            else if (Kaydet2_btn.IsEnabled == false && ListEkle_text.IsEnabled == true)
+            else
             {
-                oWB.Close(0);
-                Button_dis2();
-                oXL.Quit();
-                OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
-                openFileDialog.Multiselect = false;
-                Nullable<bool> dialogOK = openFileDialog.ShowDialog();
-                if (dialogOK == true)
-                {
-                    File2_text.Text = openFileDialog.FileName;
-                    if (File2_text.Text.Length > 0)
-                    {
-                        Open_excel(File2_text.Text);
-                        Button_en2();
-                    }
-                }
+                MessageBox.Show("İlk Önce Açık Olan Exceli Kapatınız...", "UYARI", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -1135,7 +1202,9 @@ namespace NProject
         private void Kaydet3_btn_Click(object sender, RoutedEventArgs e)
         {
             oWB3.Save();
-            oWB3.Close();
+            oXL.Quit();
+            oXL2.Quit();
+            oXL3.Quit();
         }
     }
 }
