@@ -724,7 +724,7 @@ namespace NProject
             else
             {
                 MessageBox.Show("Lütfen İlk Önce Excel Kapatma İşleminizi Yapınız.", "UYARI!", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }           
+            }
         }
 
         private void Menu_2_Click(object sender, RoutedEventArgs e)
@@ -803,16 +803,12 @@ namespace NProject
 
         public void Button_en2()
         {
-            ListEkle_btn.IsEnabled = true;
-            ListEkle_text.IsEnabled = true;
             ListBox.IsEnabled = true;
             ExcelEkle_btn.IsEnabled = true;
         }
 
         public void Button_dis2()
         {
-            ListEkle_btn.IsEnabled = false;
-            ListEkle_text.IsEnabled = false;
             ListBox.IsEnabled = false;
             ExcelEkle_btn.IsEnabled = false;
         }
@@ -876,22 +872,11 @@ namespace NProject
             w++;
             Kaydet2_btn.IsEnabled = false;
             MessageBox.Show("Kaydetme İşlemi Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+        }     
 
         private void ListEkle_btn_Click(object sender, RoutedEventArgs e)
         {
-            if (ListEkle_text.Text.Length > 0)
-            {
-                ListBoxItem itm = new ListBoxItem();
-                itm.Content = ListEkle_text.Text;
-                ListBox.Items.Add(itm);
-
-                ListEkle_text.Text = "";
-            }
-            else
-            {
-                MessageBox.Show("Ekleme Sırasında Hata Meydana Geldi Lütfen Tekrar Deneyin!", "HATA!", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            
         }
         /*YUSUF YILMAZ */
         public void print_txt(string text)
@@ -962,18 +947,19 @@ namespace NProject
                     Gezgin32_btn.IsEnabled = false;
                     KurGuncelle_btn.IsEnabled = true;
                     dolar_text.IsEnabled = true;
-               
+
                 }
             }
         }
 
+        bool find_lock = false;
         public int find_row(string barcode)
         {
             Excel.Range f_column = (Excel.Range)oSheet2.UsedRange.Columns[1];
             Excel.Range fnd = f_column.Find(barcode, Type.Missing, Excel.XlFindLookIn.xlFormulas, Excel.XlLookAt.xlWhole, Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlNext, false, false, false);
             if (fnd == null)
             {
-                MessageBoxResult result1 = MessageBox.Show("Bazı Barkod Değerleri Bulunamadı!", "BARKOD TANIMLANAMADI", MessageBoxButton.YesNo, MessageBoxImage.Error);
+                find_lock = true;
                 return 0;
             }
             else
@@ -983,6 +969,7 @@ namespace NProject
         }
 
         List<int> gain_req = new List<int>();
+        List<int> null_row = new List<int>();
         List<double> gain = new List<double>();
         List<string> barcode_value = new List<string>();
         List<string> title_value = new List<string>();
@@ -996,26 +983,21 @@ namespace NProject
         {
             for (int i = 2; i < oSheet.UsedRange.Rows.Count - 1; ++i)
             {
-                if (gain_req[i-2]==0)
+                if (gain_req[i - 2] == 0)
                 {
-                    oSheet3.Cells[i, 8] = ((min_gain_ - cost_try_value[i - 2]) / 100.0) + cost_try_value[i - 2];
+                    oSheet3.Cells[i, 10] = ((min_gain_ - cost_try_value[i - 2]) / 100.0) + cost_try_value[i - 2];
                 }
                 else
                 {
-                    oSheet3.Cells[i, 8] = "-";
+                    oSheet3.Cells[i, 10] = "-";
                 }
-                
+
             }
         }
 
-
-
-
-
-
         private void Aktarma_btn_Click(object sender, RoutedEventArgs e)
         {
-           
+
             barcode_value.Clear();
             title_value.Clear();
             cost_try_value.Clear();
@@ -1023,24 +1005,30 @@ namespace NProject
             sale_price_value.Clear();
             gain_req.Clear();
             gain.Clear();
+            null_row.Clear();
 
             double commission = 14.0;
 
-            double dolar_curr = 8;//Convert.ToDouble(dolar_text.Text.ToString());//update_currency();
-            Open_excel3("C:\\OUTPUTS\\MENU3\\menu3.xlsx");
+            double dolar_curr = update_currency();
+            Open_excel3("C:\\OUTPUTS\\TASLAKLAR\\muhasebeTaslak.xlsx");
 
-            oSheet3.Cells[1, 1] = "BARKOD";
-            oSheet3.Cells[1, 2] = "BAŞLIK";
-            oSheet3.Cells[1, 3] = "SATIŞ FİYATI";
-            oSheet3.Cells[1, 4] = "KOMİSYON";
-            oSheet3.Cells[1, 5] = "ALIŞ FİYATI (TRY)";
-            oSheet3.Cells[1, 6] = "ALIŞ FİYATI (USD)";
-            oSheet3.Cells[1, 7] = "NET KAR (%)";
-            oSheet3.Cells[1, 8] = "ÖNERİLEN SATIŞ FİYATI";
+            /*
+            oSheet3.Cells[1, 1] = "BARKOD";                                     +
+            oSheet3.Cells[1, 2] = "BAŞLIK";                                     +
+            oSheet3.Cells[1, 3] = "SATIŞ FİYATI";                               +
+            oSheet3.Cells[1, 4] = "KOMİSYON";                                   +
+            oSheet3.Cells[1, 5] = "KOMİSYONSUZ FİYAT";//SATIŞ-SATIŞIN KOMİSYONU +
+            oSheet3.Cells[1, 6] = "ALIŞ FİYATI (USD)";                          +
+            oSheet3.Cells[1, 7] = "ALIŞ FİYATI (TRY)";                          +
+            oSheet3.Cells[1, 8] = "NET KAR";                                    +
+            oSheet3.Cells[1, 9] = "NET KAR (%)";                                +
+            oSheet3.Cells[1, 10] = "ÖNERİLEN SATIŞ FİYATI";
+            */
+
             for (int j = 4; j < oSheet.UsedRange.Rows.Count + 1; j++)
             {
                 barcode_value.Add((string)(oSheet.Cells[j, 2] as Excel.Range).Value);
-                oSheet3.Cells[j - 2, 1] = (oSheet.Cells[j, 2] as Excel.Range).Value;
+                oSheet3.Cells[j - 2, 1] = oSheet.Cells[j, 2];
 
                 title_value.Add((string)(oSheet.Cells[j, 6] as Excel.Range).Value);
                 oSheet3.Cells[j - 2, 2] = (string)(oSheet.Cells[j, 6] as Excel.Range).Value;
@@ -1053,21 +1041,35 @@ namespace NProject
                 {
                     cost_usd_value.Add(0);
                     oSheet3.Cells[j - 2, 6] = 0;
+                    null_row.Add(j-2);
                 }
 
                 oSheet3.Cells[j - 2, 4] = commission;
 
+                
+
+
                 cost_try_value.Add(cost_usd_value[j - 4] * dolar_curr);
-                oSheet3.Cells[j - 2, 5] = cost_usd_value[j - 4] * dolar_curr;
+                oSheet3.Cells[j - 2, 7] = cost_usd_value[j - 4] * dolar_curr;
+
+
+
+
 
 
                 sale_price_value.Add((double)(oSheet.Cells[j, 9] as Excel.Range).Value);
                 oSheet3.Cells[j - 2, 3] = (double)(oSheet.Cells[j, 9] as Excel.Range).Value;
 
                 //(kar=satış fiyatı - alış fiyatı - (satış fiyatı*komisyon/100))*100/alış fiyatı
-                gain.Add((sale_price_value[j - 4] - cost_try_value[j - 4]) * 100.0 / (cost_try_value[j - 4]));
-                oSheet3.Cells[j - 2, 7] = Math.Round((sale_price_value[j - 4] -  cost_try_value[j - 4]) * 100.0 / (cost_try_value[j - 4]),2);
 
+                oSheet3.Cells[j - 2, 5] = ((sale_price_value[j-4])-(sale_price_value[j - 4] * commission/100.0));
+                oSheet3.Cells[j - 2, 8] = (sale_price_value[j-4])-(sale_price_value[j - 4] * commission/100.0)-(cost_try_value[j-4]);
+
+
+
+                gain.Add((100.0 * ((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]))) / (((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0))));
+                oSheet3.Cells[j - 2, 9] = (100.0*((sale_price_value[j-4])-(sale_price_value[j - 4] * commission/100.0)-(cost_try_value[j-4])))/(((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0)));
+                
                 gain_req.Add((min_gain < gain[j - 4]) ? 1 : 0);
             }
 
@@ -1089,14 +1091,31 @@ namespace NProject
                 }
             }
 
+            for(int i=0;i<null_row.Count;++i)
+            {
+                (oSheet3.UsedRange.Rows[null_row[i]] as Excel.Range).Interior.Color = silver;
+            }
+
+
             oSheet3.Columns.AutoFit();
             oSheet3.Columns.HorizontalAlignment = 4;
             Kaydet3_btn.IsEnabled = true;
             MinumumKar_btn.IsEnabled = true;
             advice_sale_price(min_gain);
+
+           /* oSheet3.Sort(oSheet3.Columns[10], Excel.XlSortOrder.xlDescending);
+            dynamic allDataRange = worksheet.UsedRange;
+            allDataRange.Sort(allDataRange.Columns[7], Excel.XlSortOrder.xlDescending);
+           */
+            if (find_lock)
+            {
+                MessageBox.Show("İşlem Tamamlandı, bazı barkod değerleri bulunamadı!");
+                find_lock = false;
+
+            }
         }
 
- 
+
         private void MinumumKar_btn_Click(object sender, RoutedEventArgs e)
         {
             InputBox inputvergi2 = new InputBox();
@@ -1105,9 +1124,11 @@ namespace NProject
             if (inputvergi2.DialogResult == true)
             {
                 min_gain = Convert.ToDouble(inputvergi2.Answer);
-                
+
             }
             Aktarma_btn.IsEnabled = true;
+            MinumumKar_btn.IsEnabled = false;
+            KurGuncelle_btn.IsEnabled = false;
         }
 
         private void KurGuncelle_btn_Click(object sender, RoutedEventArgs e)
@@ -1118,16 +1139,30 @@ namespace NProject
 
         private void Exclose_btn_Click(object sender, RoutedEventArgs e)
         {
-            oWB.Close(0);
-            oXL.Quit();
-            Exclose_btn.IsEnabled = false;
+            try
+            {
+                oWB.Close(0);
+                oXL.Quit();
+                Exclose_btn.IsEnabled = false;
+            }
+            catch (Exception)
+            {
+                Exclose_btn.IsEnabled = false;
+            }          
         }
 
         private void Ex2close_btn_Click(object sender, RoutedEventArgs e)
         {
-            oWB2.Close(0);
-            oXL2.Quit();
-            Ex2close_btn.IsEnabled = false;
+            try
+            {
+                oWB2.Close(0);
+                oXL2.Quit();
+                Ex2close_btn.IsEnabled = false;
+            }
+            catch (Exception)
+            {
+                Ex2close_btn.IsEnabled = false;
+            }       
         }
 
         /*YUSUF YILMAZ finito*/
@@ -1195,16 +1230,35 @@ namespace NProject
             {
                 MessageBox.Show("İlk Önce Açık Olan Exceli Kapatınız...", "UYARI", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+
+            Aktarma_btn.IsEnabled = false;
+
+            /*if (ListEkle_text.Text.Length > 0)
+            {
+                ListBoxItem itm = new ListBoxItem();
+                itm.Content = ListEkle_text.Text;
+                ListBox.Items.Add(itm);
+
+                ListEkle_text.Text = "";
+            }
+            else
+            {
+                MessageBox.Show("Ekleme Sırasında Hata Meydana Geldi Lütfen Tekrar Deneyin!", "HATA!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }*/
         }
 
         // ##############################################################################################################################################################
 
         private void Kaydet3_btn_Click(object sender, RoutedEventArgs e)
         {
-            oWB3.Save();
+            oWB3.SaveAs2("C:\\OUTPUTS\\MUHASEBE\\Muhasebe.xlsx");
             oXL.Quit();
             oXL2.Quit();
             oXL3.Quit();
+
+            Gezgin31_btn.IsEnabled = true;
+            Exclose_btn.IsEnabled = false;
+            Ex2close_btn.IsEnabled = false;
         }
     }
 }
