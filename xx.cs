@@ -898,11 +898,11 @@ namespace NProject
             w++;
             Kaydet2_btn.IsEnabled = false;
             MessageBox.Show("Kaydetme İşlemi Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
-        }     
+        }
 
         private void ListEkle_btn_Click(object sender, RoutedEventArgs e)
         {
-            
+
         }
         /*YUSUF YILMAZ */
         public void print_txt(string text)
@@ -915,7 +915,7 @@ namespace NProject
         }
 
 
-        public double update_currency()
+        public string update_currency()
         {
             String URLString = "https://free.currconv.com/api/v7/convert?q=USD_TRY&compact=ultra&apiKey=f8f9494dc175534f6941";
             using (var webClient = new System.Net.WebClient())
@@ -929,8 +929,8 @@ namespace NProject
                 string unit = json.Split(':')[0];
                 string curr = json.Split(':')[1];
                 dolar_text.Text = curr + " TL";
-                curr= curr.Replace(".",",");
-                return Convert.ToDouble(curr);
+                curr = curr.Replace(".", ",");
+                return curr;
             }
         }
 
@@ -1012,7 +1012,7 @@ namespace NProject
             {
                 if (gain_req[i - 2] == 0)
                 {
-                    oSheet3.Cells[i, 10] = ((min_gain_ - cost_try_value[i - 2]) / 100.0) + cost_try_value[i - 2];
+                    oSheet3.Cells[i, 10] = (double)(oSheet3.Cells[i,5] as Excel.Range).Value +(min_gain_* (double)(oSheet3.Cells[i, 5] as Excel.Range).Value/100.0);
                 }
                 else
                 {
@@ -1023,12 +1023,12 @@ namespace NProject
         }
         void sort_excel()
         {
-           
+
             Excel.Range oRng;
             Excel.Range oLastAACell;
             Excel.Range oFirstACell;
 
-            
+
 
             //Get complete last Row in Sheet (Not last used just last)     
             int intRows = oSheet3.Rows.Count;
@@ -1055,8 +1055,8 @@ namespace NProject
                       Excel.XlSortDataOption.xlSortNormal,
                       Excel.XlSortDataOption.xlSortNormal);
         }
-        
-     
+
+
 
         private void Aktarma_btn_Click(object sender, RoutedEventArgs e)
         {
@@ -1072,8 +1072,19 @@ namespace NProject
 
             double commission = 14.0;
 
-            double dolar_curr = update_currency();
+            string dolar_curr_str = update_currency();
             Open_excel3("C:\\OUTPUTS\\TASLAKLAR\\muhasebeTaslak.xlsx");
+            string seperator = oXL3.DecimalSeparator.ToString();
+            if (seperator == ",")
+            {
+
+            }
+            else
+            {
+                dolar_curr_str =dolar_curr_str.Replace(",", ".");
+            }
+            double dolar_curr = Convert.ToDouble(dolar_curr_str);
+            
 
             /*
             oSheet3.Cells[1, 1] = "BARKOD";                                     +
@@ -1091,7 +1102,7 @@ namespace NProject
             for (int j = 4; j < oSheet.UsedRange.Rows.Count + 1; j++)
             {
                 barcode_value.Add((string)(oSheet.Cells[j, 2] as Excel.Range).Value);
-                oSheet3.Cells[j - 2, 1] = oSheet.Cells[j, 2];
+                oSheet3.Cells[j - 2, 1] = oSheet.Cells[j, 2];//+
 
                 title_value.Add((string)(oSheet.Cells[j, 6] as Excel.Range).Value);
                 oSheet3.Cells[j - 2, 2] = (string)(oSheet.Cells[j, 6] as Excel.Range).Value;
@@ -1104,16 +1115,16 @@ namespace NProject
                 {
                     cost_usd_value.Add(0);
                     oSheet3.Cells[j - 2, 6] = 0;
-                    null_row.Add(j-2);
+                    null_row.Add(j - 2);
                 }
 
                 oSheet3.Cells[j - 2, 4] = commission;
 
-                
+
 
 
                 cost_try_value.Add(cost_usd_value[j - 4] * dolar_curr);
-                oSheet3.Cells[j - 2, 7] = cost_usd_value[j - 4] * dolar_curr;
+                oSheet3.Cells[j - 2, 7] = Math.Round(cost_usd_value[j - 4] * dolar_curr,3);
 
 
 
@@ -1121,18 +1132,18 @@ namespace NProject
 
 
                 sale_price_value.Add((double)(oSheet.Cells[j, 9] as Excel.Range).Value);
-                oSheet3.Cells[j - 2, 3] = (double)(oSheet.Cells[j, 9] as Excel.Range).Value;
+                oSheet3.Cells[j - 2, 3] = Math.Round((double)(oSheet.Cells[j, 9] as Excel.Range).Value,3);
 
                 //(kar=satış fiyatı - alış fiyatı - (satış fiyatı*komisyon/100))*100/alış fiyatı
 
-                oSheet3.Cells[j - 2, 5] = ((sale_price_value[j-4])-(sale_price_value[j - 4] * commission/100.0));
-                oSheet3.Cells[j - 2, 8] = (sale_price_value[j-4])-(sale_price_value[j - 4] * commission/100.0)-(cost_try_value[j-4]);
+                oSheet3.Cells[j - 2, 5] = Math.Round(((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0)),3);
+                oSheet3.Cells[j - 2, 8] = Math.Round((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]),3);
 
 
 
                 gain.Add((100.0 * ((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]))) / (((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0))));
-                oSheet3.Cells[j - 2, 9] = (100.0*((sale_price_value[j-4])-(sale_price_value[j - 4] * commission/100.0)-(cost_try_value[j-4])))/(((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0)));
-                
+                oSheet3.Cells[j - 2, 9] = Math.Round((100.0 * ((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]))) / (((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0))),3);
+
                 gain_req.Add((min_gain < gain[j - 4]) ? 1 : 0);
             }
 
@@ -1154,7 +1165,7 @@ namespace NProject
                 }
             }
 
-            for(int i=0;i<null_row.Count;++i)
+            for (int i = 0; i < null_row.Count; ++i)
             {
                 (oSheet3.UsedRange.Rows[null_row[i]] as Excel.Range).Interior.Color = silver;
             }
@@ -1167,8 +1178,8 @@ namespace NProject
             advice_sale_price(min_gain);
             sort_excel();
 
-           
-          
+
+
 
 
 
@@ -1214,7 +1225,7 @@ namespace NProject
             catch (Exception)
             {
                 Exclose_btn.IsEnabled = false;
-            }          
+            }
         }
 
         private void Ex2close_btn_Click(object sender, RoutedEventArgs e)
@@ -1228,7 +1239,7 @@ namespace NProject
             catch (Exception)
             {
                 Ex2close_btn.IsEnabled = false;
-            }       
+            }
         }
 
 
@@ -1238,7 +1249,7 @@ namespace NProject
             {
                 if (Ex2close_btn.IsEnabled == false && Kaydet2_btn.IsEnabled == false)
                 {
-                    OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|.xls|Excel Workbook|.xlsx" };
+                    OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
                     openFileDialog.Multiselect = false;
                     Nullable<bool> dialogOK = openFileDialog.ShowDialog();
                     if (dialogOK == true)
@@ -1260,7 +1271,7 @@ namespace NProject
                         oWB.Close(0);
                         Button_dis2();
                         oXL.Quit();
-                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|.xls|Excel Workbook|.xlsx" };
+                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
                         openFileDialog.Multiselect = false;
                         Nullable<bool> dialogOK = openFileDialog.ShowDialog();
                         if (dialogOK == true)
@@ -1276,7 +1287,7 @@ namespace NProject
                     catch (Exception)
                     {
                         Button_dis2();
-                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|.xls|Excel Workbook|.xlsx" };
+                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
                         openFileDialog.Multiselect = false;
                         Nullable<bool> dialogOK = openFileDialog.ShowDialog();
                         if (dialogOK == true)
