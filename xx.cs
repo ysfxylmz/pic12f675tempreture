@@ -67,7 +67,8 @@ namespace NProject
 
         readonly List<string> veri = new List<string>();
         readonly List<int> findlist = new List<int>();
-
+        readonly List<int> eklenensatirlar = new List<int>();
+        readonly List<int> eklenmeyensatirlar = new List<int>();
         public void Save_color()
         {
             bool_ssce = false;
@@ -822,45 +823,70 @@ namespace NProject
             for (int i = 0; i < ListBox.Items.Count; i++)
             {
                 ListBoxItem item = (ListBoxItem)ListBox.Items[i];
-
-                if (item.IsSelected)
-                {
-                    listselect.Add(item.Content.ToString());
-                }
+                listselect.Add(item.Content.ToString());
             }
 
-            if (listselect.Count != 0)
+            for (int i = 0; i < listselect.Count; i++)
             {
-                for (int i = 0; i < listselect.Count; i++)
-                {
-                    Excel.Range f_column = (Excel.Range)oSheet.UsedRange.Columns[6];
-                    Excel.Range start = f_column.Find(listselect[i], Type.Missing, Excel.XlFindLookIn.xlValues, Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
+                Excel.Range f_column = (Excel.Range)oSheet.UsedRange.Columns[6];
+                //Excel.Range start = f_column.Find(listselect[i], Type.Missing, Excel.XlFindLookIn.xlValues, Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
+                Excel.Range start = f_column.Find(listselect[i], Type.Missing, Excel.XlFindLookIn.xlFormulas, Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
+                Excel.Range next = start;
 
-                    Excel.Range next = start;
-                    oSheet2.Cells[m, 1] = oSheet.Cells[next.Row, 2];
-                    oSheet2.Cells[m, 2] = oSheet.Cells[next.Row, 4];
-                    oSheet2.Cells[m, 3] = oSheet.Cells[next.Row, 6];
-                    oSheet2.Cells[m, 4] = oSheet.Cells[next.Row, 12];
-                    while (true)
+                if (next != null)
+                {
+                    if (eklenensatirlar.Contains(next.Row) == false) ;
                     {
-                        next = f_column.FindNext(next.get_Offset(0, 0));
-                        if (next.Row == start.Row) break;
                         oSheet2.Cells[m, 1] = oSheet.Cells[next.Row, 2];
                         oSheet2.Cells[m, 2] = oSheet.Cells[next.Row, 4];
                         oSheet2.Cells[m, 3] = oSheet.Cells[next.Row, 6];
-                        oSheet2.Cells[m, 4] = oSheet.Cells[next.Row, 12];
-
+                        oSheet2.Cells[m, 4] = oSheet.Cells[next.Row, 10];
+                        oSheet2.Cells[m, 5] = listselect[i];
+                        eklenensatirlar.Add(next.Row);
                         m++;
                     }
-                    m++;
+
+                    while (true)
+                    {
+                        next = f_column.FindNext(next.get_Offset(0, 0));
+                        if (eklenensatirlar.Contains(next.Row) == false)
+                        {
+                            oSheet2.Cells[m, 1] = oSheet.Cells[next.Row, 2];
+                            oSheet2.Cells[m, 2] = oSheet.Cells[next.Row, 4];
+                            oSheet2.Cells[m, 3] = oSheet.Cells[next.Row, 6];
+                            oSheet2.Cells[m, 4] = oSheet.Cells[next.Row, 10];
+                            oSheet2.Cells[m, 5] = listselect[i];
+                            eklenensatirlar.Add(next.Row);
+                            m++;
+                        }
+                        if (next.Row == start.Row) break;
+                    }
+                    //m++;
                 }
-                Kaydet2_btn.IsEnabled = true;
-                MessageBox.Show("İşlem Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            else
+
+            for (int i = 4; i < oSheet.UsedRange.Rows.Count + 1; i++)
             {
-                MessageBox.Show("Lütfen Öncelikle Filtre Kelimeleri Seçiniz.", "UYARI!", MessageBoxButton.OK, MessageBoxImage.Warning);
+                eklenmeyensatirlar.Add(i);
             }
+
+            for (int i = 0; i < eklenensatirlar.Count; i++)
+            {
+                eklenmeyensatirlar.Remove(eklenensatirlar[i]);
+            }
+
+            /*for (int i = 0; i < eklenmeyensatirlar.Count; i++)
+            {
+                oSheet2.Cells[m, 1] = oSheet.Cells[eklenmeyensatirlar[i], 2];
+                oSheet2.Cells[m, 2] = oSheet.Cells[eklenmeyensatirlar[i], 4];
+                oSheet2.Cells[m, 3] = oSheet.Cells[eklenmeyensatirlar[i], 6];
+                oSheet2.Cells[m, 4] = oSheet.Cells[eklenmeyensatirlar[i], 10];
+                eklenensatirlar.Add(i);
+                m++;
+            }*/
+
+            Kaydet2_btn.IsEnabled = true;
+            MessageBox.Show("İşlem Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void Kaydet2_btn_Click(object sender, RoutedEventArgs e)
@@ -1205,14 +1231,14 @@ namespace NProject
             }       
         }
 
-       
+
         private void Gezgin2_btn_Click(object sender, RoutedEventArgs e)
         {
             if (Ex2close_btn.IsEnabled == false)
             {
                 if (Ex2close_btn.IsEnabled == false && Kaydet2_btn.IsEnabled == false)
                 {
-                    OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                    OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|.xls|Excel Workbook|.xlsx" };
                     openFileDialog.Multiselect = false;
                     Nullable<bool> dialogOK = openFileDialog.ShowDialog();
                     if (dialogOK == true)
@@ -1234,7 +1260,7 @@ namespace NProject
                         oWB.Close(0);
                         Button_dis2();
                         oXL.Quit();
-                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|.xls|Excel Workbook|.xlsx" };
                         openFileDialog.Multiselect = false;
                         Nullable<bool> dialogOK = openFileDialog.ShowDialog();
                         if (dialogOK == true)
@@ -1250,7 +1276,7 @@ namespace NProject
                     catch (Exception)
                     {
                         Button_dis2();
-                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
+                        OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|.xls|Excel Workbook|.xlsx" };
                         openFileDialog.Multiselect = false;
                         Nullable<bool> dialogOK = openFileDialog.ShowDialog();
                         if (dialogOK == true)
@@ -1271,20 +1297,26 @@ namespace NProject
                 MessageBox.Show("İlk Önce Açık Olan Exceli Kapatınız...", "UYARI", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
-            Aktarma_btn.IsEnabled = false;
+            oXL.Visible = false;
 
-            /*if (ListEkle_text.Text.Length > 0)
+            Open_excel2("C:\\OUTPUTS\\TASLAKLAR\\anahtarKelimeler.xlsx");
+            oXL2.Visible = false;
+
+            po1 = "";
+
+            for (int i = 2; i < oSheet2.UsedRange.Rows.Count + 1; i++)
             {
+                po1 = (string)(oSheet2.Cells[i, 1] as Excel.Range).Value;
+
                 ListBoxItem itm = new ListBoxItem();
-                itm.Content = ListEkle_text.Text;
+                itm.Content = po1;
                 ListBox.Items.Add(itm);
-
-                ListEkle_text.Text = "";
             }
-            else
-            {
-                MessageBox.Show("Ekleme Sırasında Hata Meydana Geldi Lütfen Tekrar Deneyin!", "HATA!", MessageBoxButton.OK, MessageBoxImage.Error);
-            }*/
+
+            oXL2.Quit();
+            Ex2close_btn.IsEnabled = false;
+
+            Aktarma_btn.IsEnabled = false;
         }
 
         // ##############################################################################################################################################################
