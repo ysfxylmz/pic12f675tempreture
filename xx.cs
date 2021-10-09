@@ -829,13 +829,12 @@ namespace NProject
             for (int i = 0; i < listselect.Count; i++)
             {
                 Excel.Range f_column = (Excel.Range)oSheet.UsedRange.Columns[6];
-                //Excel.Range start = f_column.Find(listselect[i], Type.Missing, Excel.XlFindLookIn.xlValues, Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
                 Excel.Range start = f_column.Find(listselect[i], Type.Missing, Excel.XlFindLookIn.xlFormulas, Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
                 Excel.Range next = start;
 
                 if (next != null)
                 {
-                    if (eklenensatirlar.Contains(next.Row) == false) ;
+                    if (eklenensatirlar.Contains(next.Row) == false)
                     {
                         oSheet2.Cells[m, 1] = oSheet.Cells[next.Row, 2];
                         oSheet2.Cells[m, 2] = oSheet.Cells[next.Row, 4];
@@ -875,15 +874,17 @@ namespace NProject
                 eklenmeyensatirlar.Remove(eklenensatirlar[i]);
             }
 
-            /*for (int i = 0; i < eklenmeyensatirlar.Count; i++)
+            int ii;
+
+            for (int i = 0; i < eklenmeyensatirlar.Count; i++)
             {
-                oSheet2.Cells[m, 1] = oSheet.Cells[eklenmeyensatirlar[i], 2];
-                oSheet2.Cells[m, 2] = oSheet.Cells[eklenmeyensatirlar[i], 4];
-                oSheet2.Cells[m, 3] = oSheet.Cells[eklenmeyensatirlar[i], 6];
-                oSheet2.Cells[m, 4] = oSheet.Cells[eklenmeyensatirlar[i], 10];
-                eklenensatirlar.Add(i);
+                ii = eklenmeyensatirlar[i];
+                oSheet2.Cells[m, 1] = oSheet.Cells[ii, 2];
+                oSheet2.Cells[m, 2] = oSheet.Cells[ii, 4];
+                oSheet2.Cells[m, 3] = oSheet.Cells[ii, 6];
+                oSheet2.Cells[m, 4] = oSheet.Cells[ii, 10];
                 m++;
-            }*/
+            }
 
             Kaydet2_btn.IsEnabled = true;
             MessageBox.Show("İşlem Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -891,13 +892,30 @@ namespace NProject
 
         private void Kaydet2_btn_Click(object sender, RoutedEventArgs e)
         {
-            oWB2.SaveAs("C:\\OUTPUTS\\DUZENLENMIS\\NewExcel" + w + ".xlsx");
-            oWB2.Close(0);
-            oXL2.Quit();
-            Ex2close_btn.IsEnabled = false;
-            w++;
-            Kaydet2_btn.IsEnabled = false;
-            MessageBox.Show("Kaydetme İşlemi Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                oWB2.SaveAs("C:\\OUTPUTS\\DUZENLENMIS\\NewExcel" + w + ".xlsx");
+                oWB2.Close(0);
+                oXL2.Quit();
+                Ex2close_btn.IsEnabled = false;
+                w++;
+                Kaydet2_btn.IsEnabled = false;
+                ExcelEkle_btn.IsEnabled = false;
+                MessageBox.Show("Kaydetme İşlemi Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            }
+            catch (Exception)
+            {
+                Ex2close_btn.IsEnabled = false;
+                w++;
+                Kaydet2_btn.IsEnabled = false;
+                ExcelEkle_btn.IsEnabled = false;
+                eklenensatirlar.Clear();
+                eklenmeyensatirlar.Clear();
+
+                MessageBox.Show("Bir Hata Meydana Geldi Kayıt İşlemi Başarısız!", "HATA", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            
         }
 
         private void ListEkle_btn_Click(object sender, RoutedEventArgs e)
@@ -948,6 +966,7 @@ namespace NProject
                     if (File31_text.Text.Length > 0)
                     {
                         Open_excel(File31_text.Text);
+                        oXL.Visible = false;
                         Gezgin31_btn.IsEnabled = false;
                         Gezgin32_btn.IsEnabled = true;
                     }
@@ -971,10 +990,10 @@ namespace NProject
                 if (File32_text.Text.Length > 0)
                 {
                     Open_excel2(File32_text.Text);
+                    oXL2.Visible = false;
                     Gezgin32_btn.IsEnabled = false;
                     KurGuncelle_btn.IsEnabled = true;
                     dolar_text.IsEnabled = true;
-
                 }
             }
         }
@@ -1012,13 +1031,12 @@ namespace NProject
             {
                 if (gain_req[i - 2] == 0)
                 {
-                    oSheet3.Cells[i, 10] = (double)(oSheet3.Cells[i,5] as Excel.Range).Value +(min_gain_* (double)(oSheet3.Cells[i, 5] as Excel.Range).Value/100.0);
+                    oSheet3.Cells[i, 11] = (double)(oSheet3.Cells[i, 4] as Excel.Range).Value + (min_gain_ * (double)(oSheet3.Cells[i, 4] as Excel.Range).Value / 100.0);
                 }
                 else
                 {
-                    oSheet3.Cells[i, 10] = "-";
+                    oSheet3.Cells[i, 11] = "-";
                 }
-
             }
         }
         void sort_excel()
@@ -1028,13 +1046,11 @@ namespace NProject
             Excel.Range oLastAACell;
             Excel.Range oFirstACell;
 
-
-
             //Get complete last Row in Sheet (Not last used just last)     
             int intRows = oSheet3.Rows.Count;
 
             //Get the last cell in Column AA
-            oLastAACell = (Excel.Range)oSheet3.Cells[intRows, 10];
+            oLastAACell = (Excel.Range)oSheet3.Cells[intRows, 11];
 
             //Move courser up to the last cell in AA that is not blank
             oLastAACell = oLastAACell.End[Excel.XlDirection.xlUp];
@@ -1046,7 +1062,7 @@ namespace NProject
             oRng = (Excel.Range)oSheet3.Range[oFirstACell, oLastAACell];
 
             //Sort the range based on First Columns And 6th (in this case A and F)
-            oRng.Sort(oRng.Columns[10, Type.Missing], Excel.XlSortOrder.xlAscending, // the first sort key Column 1 for Range
+            oRng.Sort(oRng.Columns[11, Type.Missing], Excel.XlSortOrder.xlAscending, // the first sort key Column 1 for Range
                       Type.Missing, Type.Missing, Excel.XlSortOrder.xlAscending,// oRng.Columns[10, Type.Missing]second sort key Column 6 of the range
                       Type.Missing, Excel.XlSortOrder.xlAscending,  // third sort key nothing, but it wants one
                       Excel.XlYesNoGuess.xlGuess, Type.Missing, Type.Missing,
@@ -1054,9 +1070,8 @@ namespace NProject
                       Excel.XlSortDataOption.xlSortNormal,
                       Excel.XlSortDataOption.xlSortNormal,
                       Excel.XlSortDataOption.xlSortNormal);
+
         }
-
-
 
         private void Aktarma_btn_Click(object sender, RoutedEventArgs e)
         {
@@ -1081,10 +1096,9 @@ namespace NProject
             }
             else
             {
-                dolar_curr_str =dolar_curr_str.Replace(",", ".");
+                dolar_curr_str = dolar_curr_str.Replace(",", ".");
             }
             double dolar_curr = Convert.ToDouble(dolar_curr_str);
-            
 
             /*
             oSheet3.Cells[1, 1] = "BARKOD";                                     +
@@ -1101,48 +1115,41 @@ namespace NProject
 
             for (int j = 4; j < oSheet.UsedRange.Rows.Count + 1; j++)
             {
+
                 barcode_value.Add((string)(oSheet.Cells[j, 2] as Excel.Range).Value);
-                oSheet3.Cells[j - 2, 1] = oSheet.Cells[j, 2];//+
+                oSheet3.Cells[j - 2, 1] = oSheet.Cells[j, 4];//+
+                oSheet3.Cells[j - 2, 2] = oSheet.Cells[j, 2];//+
+                
 
                 title_value.Add((string)(oSheet.Cells[j, 6] as Excel.Range).Value);
-                oSheet3.Cells[j - 2, 2] = (string)(oSheet.Cells[j, 6] as Excel.Range).Value;
+                oSheet3.Cells[j - 2, 3] = (string)(oSheet.Cells[j, 6] as Excel.Range).Value;//+
                 if (find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value) != 0)
                 {
                     cost_usd_value.Add((double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value);
-                    oSheet3.Cells[j - 2, 6] = (double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value;
+                    oSheet3.Cells[j - 2, 7] = (double)(oSheet2.Cells[find_row((string)(oSheet.Cells[j, 2] as Excel.Range).Value), 3] as Excel.Range).Value;
                 }
                 else
                 {
                     cost_usd_value.Add(0);
-                    oSheet3.Cells[j - 2, 6] = 0;
+                    oSheet3.Cells[j - 2, 7] = 0;
                     null_row.Add(j - 2);
                 }
 
-                oSheet3.Cells[j - 2, 4] = commission;
-
-
-
+                oSheet3.Cells[j - 2, 5] = commission;
 
                 cost_try_value.Add(cost_usd_value[j - 4] * dolar_curr);
-                oSheet3.Cells[j - 2, 7] = Math.Round(cost_usd_value[j - 4] * dolar_curr,3);
-
-
-
-
-
+                oSheet3.Cells[j - 2, 8] = Math.Round(cost_usd_value[j - 4] * dolar_curr, 3);
 
                 sale_price_value.Add((double)(oSheet.Cells[j, 9] as Excel.Range).Value);
-                oSheet3.Cells[j - 2, 3] = Math.Round((double)(oSheet.Cells[j, 9] as Excel.Range).Value,3);
+                oSheet3.Cells[j - 2, 4] = Math.Round((double)(oSheet.Cells[j, 9] as Excel.Range).Value, 3);
 
                 //(kar=satış fiyatı - alış fiyatı - (satış fiyatı*komisyon/100))*100/alış fiyatı
 
-                oSheet3.Cells[j - 2, 5] = Math.Round(((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0)),3);
-                oSheet3.Cells[j - 2, 8] = Math.Round((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]),3);
-
-
+                oSheet3.Cells[j - 2, 6] = Math.Round(((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0)), 3);
+                oSheet3.Cells[j - 2, 9] = Math.Round((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]), 3);
 
                 gain.Add((100.0 * ((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]))) / (((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0))));
-                oSheet3.Cells[j - 2, 9] = Math.Round((100.0 * ((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]))) / (((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0))),3);
+                oSheet3.Cells[j - 2, 10] = Math.Round((100.0 * ((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0) - (cost_try_value[j - 4]))) / (((sale_price_value[j - 4]) - (sale_price_value[j - 4] * commission / 100.0))), 3);
 
                 gain_req.Add((min_gain < gain[j - 4]) ? 1 : 0);
             }
@@ -1170,19 +1177,12 @@ namespace NProject
                 (oSheet3.UsedRange.Rows[null_row[i]] as Excel.Range).Interior.Color = silver;
             }
 
-
             oSheet3.Columns.AutoFit();
             oSheet3.Columns.HorizontalAlignment = 4;
             Kaydet3_btn.IsEnabled = true;
             MinumumKar_btn.IsEnabled = true;
             advice_sale_price(min_gain);
             sort_excel();
-
-
-
-
-
-
 
             if (find_lock)
             {
@@ -1245,9 +1245,9 @@ namespace NProject
 
         private void Gezgin2_btn_Click(object sender, RoutedEventArgs e)
         {
-            if (Ex2close_btn.IsEnabled == false)
+            if (Exclose_btn.IsEnabled == false)
             {
-                if (Ex2close_btn.IsEnabled == false && Kaydet2_btn.IsEnabled == false)
+                if (Exclose_btn.IsEnabled == false && Kaydet2_btn.IsEnabled == false)
                 {
                     OpenFileDialog openFileDialog = new OpenFileDialog() { Filter = "Excel 97-2003 Workbook|*.xls|Excel Workbook|*.xlsx" };
                     openFileDialog.Multiselect = false;
@@ -1260,11 +1260,12 @@ namespace NProject
                         {
                             Open_excel(File2_text.Text);
                             Button_en2();
+                            //oXL.Visible = false;
                         }
                     }
                 }
 
-                else if (Ex2close_btn.IsEnabled == true && Kaydet2_btn.IsEnabled == false)
+                else if (Exclose_btn.IsEnabled == true && Kaydet2_btn.IsEnabled == false)
                 {
                     try
                     {
@@ -1281,6 +1282,7 @@ namespace NProject
                             {
                                 Open_excel(File2_text.Text);
                                 Button_en2();
+                                //oXL.Visible = false;
                             }
                         }
                     }
@@ -1297,9 +1299,33 @@ namespace NProject
                             {
                                 Open_excel(File2_text.Text);
                                 Button_en2();
+                                //oXL.Visible = false;
                             }
                         }
                     }
+                }
+
+                if (Exclose_btn.IsEnabled == true)
+                {
+
+                    Open_excel2("C:\\OUTPUTS\\TASLAKLAR\\anahtarKelimeler.xlsx");
+                    oXL2.Visible = false;
+
+                    po1 = "";
+
+                    for (int i = 2; i < oSheet2.UsedRange.Rows.Count + 1; i++)
+                    {
+                        po1 = (string)(oSheet2.Cells[i, 1] as Excel.Range).Value;
+
+                        ListBoxItem itm = new ListBoxItem();
+                        itm.Content = po1;
+                        ListBox.Items.Add(itm);
+                    }
+
+                    oXL2.Quit();
+                    Ex2close_btn.IsEnabled = false;
+
+                    Aktarma_btn.IsEnabled = false;
                 }
             }
 
@@ -1307,41 +1333,33 @@ namespace NProject
             {
                 MessageBox.Show("İlk Önce Açık Olan Exceli Kapatınız...", "UYARI", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
-
-            oXL.Visible = false;
-
-            Open_excel2("C:\\OUTPUTS\\TASLAKLAR\\anahtarKelimeler.xlsx");
-            oXL2.Visible = false;
-
-            po1 = "";
-
-            for (int i = 2; i < oSheet2.UsedRange.Rows.Count + 1; i++)
-            {
-                po1 = (string)(oSheet2.Cells[i, 1] as Excel.Range).Value;
-
-                ListBoxItem itm = new ListBoxItem();
-                itm.Content = po1;
-                ListBox.Items.Add(itm);
-            }
-
-            oXL2.Quit();
-            Ex2close_btn.IsEnabled = false;
-
-            Aktarma_btn.IsEnabled = false;
         }
 
         // ##############################################################################################################################################################
 
         private void Kaydet3_btn_Click(object sender, RoutedEventArgs e)
         {
-            oWB3.SaveAs2("C:\\OUTPUTS\\MUHASEBE\\Muhasebe.xlsx");
-            oXL.Quit();
-            oXL2.Quit();
-            oXL3.Quit();
+            try
+            {
+                oWB3.SaveAs2("C:\\OUTPUTS\\MUHASEBE\\Muhasebe.xlsx");
+                oXL.Quit();
+                oXL2.Quit();
+                oXL3.Quit();
 
-            Gezgin31_btn.IsEnabled = true;
-            Exclose_btn.IsEnabled = false;
-            Ex2close_btn.IsEnabled = false;
+                Gezgin31_btn.IsEnabled = true;
+                Exclose_btn.IsEnabled = false;
+                Ex2close_btn.IsEnabled = false;
+
+                MessageBox.Show("Kaydetme İşlemi Başarılı...", "BAŞARILI", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception)
+            {
+                Gezgin31_btn.IsEnabled = true;
+                Exclose_btn.IsEnabled = false;
+                Ex2close_btn.IsEnabled = false;
+
+                MessageBox.Show("Bir Hata Meydana Geldi Kaydetme İşlemi Başarısız!", "HATA", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }
