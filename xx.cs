@@ -903,6 +903,7 @@ namespace NProject
                 string unit = json.Split(':')[0];
                 string curr = json.Split(':')[1];
                 dolar_text.Text = curr + " TL";
+                curr= curr.Replace(".",",");
                 return Convert.ToDouble(curr);
             }
         }
@@ -994,6 +995,42 @@ namespace NProject
 
             }
         }
+        void sort_excel()
+        {
+           
+            Excel.Range oRng;
+            Excel.Range oLastAACell;
+            Excel.Range oFirstACell;
+
+            
+
+            //Get complete last Row in Sheet (Not last used just last)     
+            int intRows = oSheet3.Rows.Count;
+
+            //Get the last cell in Column AA
+            oLastAACell = (Excel.Range)oSheet3.Cells[intRows, 10];
+
+            //Move courser up to the last cell in AA that is not blank
+            oLastAACell = oLastAACell.End[Excel.XlDirection.xlUp];
+
+            //Get First Cell of Data (A2)
+            oFirstACell = (Excel.Range)oSheet3.Cells[2, 1];
+
+            //Get Entire Range of Data
+            oRng = (Excel.Range)oSheet3.Range[oFirstACell, oLastAACell];
+
+            //Sort the range based on First Columns And 6th (in this case A and F)
+            oRng.Sort(oRng.Columns[10, Type.Missing], Excel.XlSortOrder.xlAscending, // the first sort key Column 1 for Range
+                      Type.Missing, Type.Missing, Excel.XlSortOrder.xlAscending,// oRng.Columns[10, Type.Missing]second sort key Column 6 of the range
+                      Type.Missing, Excel.XlSortOrder.xlAscending,  // third sort key nothing, but it wants one
+                      Excel.XlYesNoGuess.xlGuess, Type.Missing, Type.Missing,
+                      Excel.XlSortOrientation.xlSortColumns, Excel.XlSortMethod.xlPinYin,
+                      Excel.XlSortDataOption.xlSortNormal,
+                      Excel.XlSortDataOption.xlSortNormal,
+                      Excel.XlSortDataOption.xlSortNormal);
+        }
+        
+     
 
         private void Aktarma_btn_Click(object sender, RoutedEventArgs e)
         {
@@ -1102,11 +1139,14 @@ namespace NProject
             Kaydet3_btn.IsEnabled = true;
             MinumumKar_btn.IsEnabled = true;
             advice_sale_price(min_gain);
+            sort_excel();
 
-           /* oSheet3.Sort(oSheet3.Columns[10], Excel.XlSortOrder.xlDescending);
-            dynamic allDataRange = worksheet.UsedRange;
-            allDataRange.Sort(allDataRange.Columns[7], Excel.XlSortOrder.xlDescending);
-           */
+           
+          
+
+
+
+
             if (find_lock)
             {
                 MessageBox.Show("İşlem Tamamlandı, bazı barkod değerleri bulunamadı!");
@@ -1165,7 +1205,7 @@ namespace NProject
             }       
         }
 
-        /*YUSUF YILMAZ finito*/
+       
         private void Gezgin2_btn_Click(object sender, RoutedEventArgs e)
         {
             if (Ex2close_btn.IsEnabled == false)
